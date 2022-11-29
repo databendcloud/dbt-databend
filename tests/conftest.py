@@ -19,5 +19,4 @@ def dbt_profile_target():
         "user": "root",
         "pass": "root",
         "schema": "default",
-        "dbname": "default",
     }
