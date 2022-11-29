@@ -3,7 +3,7 @@ import pytest
 from dbt.tests.adapter.basic.test_base import BaseSimpleMaterializations
 from dbt.tests.adapter.basic.test_singular_tests import BaseSingularTests
 from dbt.tests.adapter.basic.test_singular_tests_ephemeral import (
-    BaseSingularTestsEphemeral
+    BaseSingularTestsEphemeral,
 )
 from dbt.tests.adapter.basic.test_empty import BaseEmpty
 from dbt.tests.adapter.basic.test_ephemeral import BaseEphemeral
@@ -17,16 +17,6 @@ from dbt.tests.util import check_relation_types, relation_from_name, run_dbt
 
 class TestSimpleMaterializationsDatabend(BaseSimpleMaterializations):
     pass
-
-
-# class TestSingularTestsDatabend(BaseSingularTests):
-#     pass
-
-
-#
-#
-# class TestSingularTestsEphemeralDatabend(BaseSingularTestsEphemeral):
-#     pass
 
 
 #
@@ -54,14 +44,14 @@ class TestIncrementalDatabend(BaseIncremental):
 
 #
 #
-class TestSnapshotCheckColsDatabend(BaseSnapshotCheckCols):
-    pass
+# class TestSnapshotCheckColsDatabend(BaseSnapshotCheckCols):
+#     pass
 
 
 #
 #
-class TestSnapshotTimestampDatabend(BaseSnapshotTimestamp):
-    pass
+# class TestSnapshotTimestampDatabend(BaseSnapshotTimestamp):
+#     pass
 
 
 #
@@ -91,12 +81,13 @@ klm,1,0
 klm,1,
 """.lstrip()
 
-# class TestCSVSeed:
-#     @pytest.fixture(scope="class")
-#     def seeds(self):
-#         return {"boolean.csv": seeds_boolean_csv, "empty.csv": seeds_empty_csv}
-#
-#     def test_seed(self, project):
-#         # seed command
-#         results = run_dbt(["seed"])
-#         assert len(results) == 2
+
+class TestCSVSeed:
+    @pytest.fixture(scope="class")
+    def seeds(self):
+        return {"boolean.csv": seeds_boolean_csv, "empty.csv": seeds_empty_csv}
+
+    def test_seed(self, project):
+        # seed command
+        results = run_dbt(["seed"])
+        assert len(results) == 2

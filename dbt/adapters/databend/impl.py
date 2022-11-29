@@ -107,19 +107,20 @@ class DatabendAdapter(SQLAdapter):
         return "{}".format(identifier)
 
     def check_schema_exists(self, database, schema):
-        results = self.execute_macro(LIST_SCHEMAS_MACRO_NAME, kwargs={"database": database})
+        results = self.execute_macro(
+            LIST_SCHEMAS_MACRO_NAME, kwargs={"database": database}
+        )
 
         exists = True if schema in [row[0] for row in results] else False
         return exists
 
     def list_relations_without_caching(
-            self, schema_relation: DatabendRelation
+        self, schema_relation: DatabendRelation
     ) -> List[DatabendRelation]:
         kwargs = {"schema_relation": schema_relation}
         results = self.execute_macro(LIST_RELATIONS_MACRO_NAME, kwargs=kwargs)
 
         relations = []
-        print("%%",results.rows)
         for row in results:
             if len(row) != 4:
                 raise dbt.exceptions.RuntimeException(
@@ -139,7 +140,9 @@ class DatabendAdapter(SQLAdapter):
         return relations
 
     @classmethod
-    def _catalog_filter_table(cls, table: agate.Table, manifest: Manifest) -> agate.Table:
+    def _catalog_filter_table(
+        cls, table: agate.Table, manifest: Manifest
+    ) -> agate.Table:
         table = table_from_rows(
             table.rows,
             table.column_names,
@@ -154,7 +157,7 @@ class DatabendAdapter(SQLAdapter):
         return super().get_relation(database, schema, identifier)
 
     def parse_show_columns(
-            self, _relation: DatabendRelation, raw_rows: List[agate.Row]
+        self, _relation: DatabendRelation, raw_rows: List[agate.Row]
     ) -> List[DatabendColumn]:
         rows = [
             dict(zip(row._keys, row._values))  # pylint: disable=protected-access
@@ -169,7 +172,9 @@ class DatabendAdapter(SQLAdapter):
             for column in rows
         ]
 
-    def get_columns_in_relation(self, relation: DatabendRelation) -> List[DatabendColumn]:
+    def get_columns_in_relation(
+        self, relation: DatabendRelation
+    ) -> List[DatabendColumn]:
         rows: List[agate.Row] = super().get_columns_in_relation(relation)
 
         return self.parse_show_columns(relation, rows)
@@ -178,7 +183,8 @@ class DatabendAdapter(SQLAdapter):
         schema_map = self._get_catalog_schemas(manifest)
         if len(schema_map) > 1:
             dbt.exceptions.raise_compiler_error(
-                f"Expected only one database in get_catalog, found " f"{list(schema_map)}"
+                f"Expected only one database in get_catalog, found "
+                f"{list(schema_map)}"
             )
 
         with executor(self.config) as tpe:
@@ -199,10 +205,10 @@ class DatabendAdapter(SQLAdapter):
         return catalogs, exceptions
 
     def _get_one_catalog(
-            self,
-            information_schema: InformationSchema,
-            schemas: Set[str],
-            manifest: Manifest,
+        self,
+        information_schema: InformationSchema,
+        schemas: Set[str],
+        manifest: Manifest,
     ) -> agate.Table:
         if len(schemas) != 1:
             dbt.exceptions.raise_compiler_error(
@@ -212,11 +218,11 @@ class DatabendAdapter(SQLAdapter):
         return super()._get_one_catalog(information_schema, schemas, manifest)
 
     def update_column_sql(
-            self,
-            dst_name: str,
-            dst_column: str,
-            clause: str,
-            where_clause: Optional[str] = None,
+        self,
+        dst_name: str,
+        dst_column: str,
+        clause: str,
+        where_clause: Optional[str] = None,
     ) -> str:
         raise dbt.exceptions.NotImplementedException(
             "`update_column_sql` is not implemented for this adapter!"
@@ -243,11 +249,11 @@ class DatabendAdapter(SQLAdapter):
             conn.transaction_open = False
 
     def get_rows_different_sql(
-            self,
-            relation_a: DatabendRelation,
-            relation_b: DatabendRelation,
-            column_names: Optional[List[str]] = None,
-            except_operator: str = "EXCEPT",
+        self,
+        relation_a: DatabendRelation,
+        relation_b: DatabendRelation,
+        column_names: Optional[List[str]] = None,
+        except_operator: str = "EXCEPT",
     ) -> str:
         names: List[str]
         if column_names is None:
@@ -258,8 +264,8 @@ class DatabendAdapter(SQLAdapter):
 
         alias_a = "A"
         alias_b = "B"
-        columns_csv_a = ', '.join([f"{alias_a}.{name}" for name in names])
-        columns_csv_b = ', '.join([f"{alias_b}.{name}" for name in names])
+        columns_csv_a = ", ".join([f"{alias_a}.{name}" for name in names])
+        columns_csv_b = ", ".join([f"{alias_b}.{name}" for name in names])
         join_condition = " AND ".join(
             [f"{alias_a}.{name} = {alias_b}.{name}" for name in names]
         )
@@ -268,7 +274,7 @@ class DatabendAdapter(SQLAdapter):
         first_column = names[0]
 
         # MySQL doesn't have an EXCEPT or MINUS operator, so we need to simulate it
-        COLUMNS_EQUAL_SQL = '''
+        COLUMNS_EQUAL_SQL = """
         WITH
         a_except_b as (
             SELECT
@@ -312,7 +318,7 @@ class DatabendAdapter(SQLAdapter):
             diff_count.num_missing as num_mismatched
         FROM row_count_diff
         INNER JOIN diff_count ON row_count_diff.id = diff_count.id
-        '''.strip()
+        """.strip()
 
         sql = COLUMNS_EQUAL_SQL.format(
             alias_a=alias_a,

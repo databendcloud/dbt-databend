@@ -1,43 +1,99 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/dbt-labs/dbt/ec7dee39f793aa4f7dd3dae37282cc87664813e4/etc/dbt-logo-full.svg" alt="dbt logo" width="500"/>
+  <img src="https://user-images.githubusercontent.com/172204/193307982-a286c574-80ef-41de-b52f-1b064ae7fccd.png" alt="Databend logo" />
+  <img src="https://raw.githubusercontent.com/dbt-labs/dbt/ec7dee39f793aa4f7dd3dae37282cc87664813e4/etc/dbt-logo-full.svg" alt="dbt logo" width="250"/>
 </p>
 
-**[dbt](https://www.getdbt.com/)** enables data analysts and engineers to transform their data using the same practices that software engineers use to build applications.
+# dbt-databend-cloud
 
-dbt is the T in ELT. Organize, cleanse, denormalize, filter, rename, and pre-aggregate the raw data in your warehouse so that it's ready for analysis.
+![PyPI](https://img.shields.io/pypi/v/dbt-databend-cloud)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dbt-databend-cloud)
+![PyPI - Downloads](https://img.shields.io/pypi/dw/dbt-databend-cloud)
 
-## Databend
-This repo contains the base code to help you start to build out your dbt-databend adapter plugin, for more information on how to build out the adapter please follow the [docs](https://docs.getdbt.com/docs/contributing/building-a-new-adapter)
+The `dbt-databend-cloud` package contains all of the code enabling [dbt](https://getdbt.com) to work with
+[Databend Cloud](https://databend.rs/doc/cloud/).
 
-** Note ** this `README` is meant to be replaced with what information would be required to use your adpater once your at a point todo so.
+## Table of Contents
+* [Installation](#installation)
+* [Supported features](#supported-features)
+* [Profile Configuration](#profile-configuration)
+* [Database User Privileges](#database-user-privileges)
+* [Running Tests](#running-tests)
+* [Example](#example)
+* [Contributing](#contributing)
 
-** Note **
-### Adapter Scaffold default Versioning
-This adapter plugin follows [semantic versioning](https://semver.org/). The first version of this plugin is v1.3.0, in order to be compatible with dbt Core v1.3.0.
+## Installation
+Compile by source code.
 
-It's also brand new! For Databend-specific functionality, we will aim for backwards-compatibility wherever possible. We are likely to be iterating more quickly than most major-version-1 software projects. To that end, backwards-incompatible changes will be clearly communicated and limited to minor versions (once every three months).
+```bash
+$ git clone https://github.com/databendcloud/dbt-databend.git
+$ cd dbt-databend-cloud
+$ pip install .
+```
+Also, you can get it from pypi.
 
- ## Getting Started
+```bash
+$ pip install dbt-databend-cloud
+```
+## Supported features
 
- #### Setting up Locally
-- run `pip install -r dev-requirements.txt`.
-- cd directory into the `dbt-core` you'd like to be testing against and run `make dev`.
+ | ok |           Feature           |
+|:--:|:---------------------------:|
+|  ✅ |    Table materialization    |
+|  ✅ |    View materialization     |
+|  ✅ | Incremental materialization |
+|  ❌  |  Ephemeral materialization  |
+|  ✅ |            Seeds            |
+|  ✅ |           Sources           |
+|  ✅ |      Custom data tests      |
+|  ✅ |        Docs generate        |
+|  ❌ |          Snapshots          |
+|  ✅ |      Connection retry       |
 
- #### Connect to Github
-- run `git init`.
-- Connect your lcoal code to a Github repo.
+Note:
 
-## Join the dbt Community
+* Databend does not support `Ephemeral` and `SnapShot`. You can find more detail [here](https://github.com/datafuselabs/databend/issues/8685)
 
-- Be part of the conversation in the [dbt Community Slack](http://community.getdbt.com/)
-- If one doesn't exist feel free to request a #db-Databend channel be made in the [#channel-requests](https://getdbt.slack.com/archives/C01D8J8AJDA) on dbt community slack channel.
-- Read more on the [dbt Community Discourse](https://discourse.getdbt.com)
+## Profile Configuration
 
-## Reporting bugs and contributing code
+Databend Cloud targets should be set up using the following configuration in your `profiles.yml` file.
 
-- Want to report a bug or request a feature? Let us know on [Slack](http://community.getdbt.com/), or open [an issue](https://github.com/dbt-labs/dbt-redshift/issues/new)
-- Want to help us build dbt? Check out the [Contributing Guide](https://github.com/dbt-labs/dbt/blob/HEAD/CONTRIBUTING.md)
+**Example entry for profiles.yml:**
 
-## Code of Conduct
+```
+Your_Profile_Name:
+  target: dev
+  outputs:
+    dev:
+      type: databend
+      host: [host]
+      port: [port]
+      schema: [schema(Your database)]
+      user: [username]
+      pass: [password]
+```
 
-Everyone interacting in the dbt project's codebases, issue trackers, chat rooms, and mailing lists is expected to follow the [dbt Code of Conduct](https://community.getdbt.com/code-of-conduct).
+| Option   | Description                                           | Required? | Example                        |
+|----------|-------------------------------------------------------|-----------|--------------------------------|
+| type     | The specific adapter to use                           | Required  | `databend`                     |
+| host     | The server (hostname) to connect to                   | Required  | `yourorg.databend.com`         |
+| port     | The port to use                                       | Required  | `443`                          |
+| schema   | Specify the schema (database) to build models into    | Required  | `analytics`                    |
+| user     | The username to use to connect to the server          | Required  | `dbt_admin`                    |
+| pass     | The password to use for authenticating to the server  | Required  | `correct-horse-battery-staple` |
+
+
+Note:
+
+* You can find your host, user, pass information in this [docs](https://docs.databend.com/using-databend-cloud/warehouses/connecting-a-warehouse)
+
+## Running Tests
+
+See [tests/README.md](tests/README.md) for details on running the integration tests.
+
+## Example
+
+TODO
+
+## Contributing
+
+Welcome to contribute for dbt-databend-cloud. See [Contributing Guide](CONTRIBUTING.md) for more information.

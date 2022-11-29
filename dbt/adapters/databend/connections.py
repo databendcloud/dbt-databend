@@ -34,6 +34,7 @@ class DatabendCredentials(Credentials):
     Defines database specific credentials that get added to
     profiles.yml to connect to new adapter
     """
+
     host: Optional[str] = None
     port: Optional[int] = None
     database: Optional[str] = None
@@ -47,11 +48,7 @@ class DatabendCredentials(Credentials):
     # username: str
     # password: str
 
-    _ALIASES = {
-        "dbname": "database",
-        "pass": "password",
-        "user": "username"
-    }
+    _ALIASES = {"dbname": "database", "pass": "password", "user": "username"}
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
@@ -68,10 +65,7 @@ class DatabendCredentials(Credentials):
     def __post_init__(self):
         # databend classifies database and schema as the same thing
         self.database = None
-        if (
-                self.database is not None and
-                self.database != self.schema
-        ):
+        if self.database is not None and self.database != self.schema:
             raise dbt.exceptions.RuntimeException(
                 f"    schema: {self.schema} \n"
                 f"    database: {self.database} \n"
@@ -153,7 +147,8 @@ class DatabendConnectionManager(connection_cls):
             #     # password=credentials.password,
             # )
             handle = connector.connect(
-                f'https://{credentials.username}:{credentials.password}@{credentials.host}:{credentials.port}')
+                f"https://{credentials.username}:{credentials.password}@{credentials.host}:{credentials.port}"
+            )
         except Exception as e:
             logger.debug("Error opening connection: {}".format(e))
             connection.handle = None
@@ -165,10 +160,10 @@ class DatabendConnectionManager(connection_cls):
 
     @classmethod
     def get_response(cls, _):
-        return 'OK'
+        return "OK"
 
     def execute(
-            self, sql: str, auto_begin: bool = False, fetch: bool = False
+        self, sql: str, auto_begin: bool = False, fetch: bool = False
     ) -> Tuple[AdapterResponse, agate.Table]:
         # don't apply the query comment here
         # it will be applied after ';' queries are split
@@ -182,7 +177,6 @@ class DatabendConnectionManager(connection_cls):
         return response, table
 
     def add_query(self, sql, auto_begin=False, bindings=None, abridge_sql_log=False):
-        print("bindings")
         connection, cursor = super().add_query(
             sql, auto_begin, bindings=bindings, abridge_sql_log=abridge_sql_log
         )

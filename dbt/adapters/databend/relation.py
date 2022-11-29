@@ -32,7 +32,6 @@ class DatabendRelation(BaseRelation):
     quote_character: str = ""
 
     def __post_init__(self):
-        print(self.database, self.schema)
         if self.database != self.schema and self.database:
             raise dbt.exceptions.RuntimeException(
                 f"    schema: {self.schema} \n"
@@ -43,12 +42,12 @@ class DatabendRelation(BaseRelation):
 
     @classmethod
     def create(
-            cls: Type[Self],
-            database: Optional[str] = None,
-            schema: Optional[str] = None,
-            identifier: Optional[str] = None,
-            type: Optional[RelationType] = None,
-            **kwargs,
+        cls: Type[Self],
+        database: Optional[str] = None,
+        schema: Optional[str] = None,
+        identifier: Optional[str] = None,
+        type: Optional[RelationType] = None,
+        **kwargs,
     ) -> Self:
         cls.database = None
         database = None
@@ -73,7 +72,9 @@ class DatabendRelation(BaseRelation):
         return super().render()
 
     @classmethod
-    def get_path(cls, relation: BaseRelation, information_schema_view: Optional[str]) -> Path:
+    def get_path(
+        cls, relation: BaseRelation, information_schema_view: Optional[str]
+    ) -> Path:
         Path.database = None
         return Path(
             database=None,
@@ -82,13 +83,13 @@ class DatabendRelation(BaseRelation):
         )
 
     def matches(
-            self,
-            database: Optional[str] = None,
-            schema: Optional[str] = None,
-            identifier: Optional[str] = None,
+        self,
+        database: Optional[str] = None,
+        schema: Optional[str] = None,
+        identifier: Optional[str] = None,
     ):
         if database:
             raise dbt.exceptions.RuntimeException(
-                f'Passed unexpected schema value {schema} to Relation.matches'
+                f"Passed unexpected schema value {schema} to Relation.matches"
             )
         return self.schema == schema and self.identifier == identifier

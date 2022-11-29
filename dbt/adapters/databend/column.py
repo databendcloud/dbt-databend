@@ -4,12 +4,11 @@ from typing import TypeVar, Optional, Dict, Any
 import dbt.exceptions
 from dbt.adapters.base.column import Column
 
-Self = TypeVar('Self', bound='DatabendColumn')
+Self = TypeVar("Self", bound="DatabendColumn")
 
 
 @dataclass
 class DatabendColumn(Column):
-
     @property
     def quoted(self) -> str:
         return '"{}"'.format(self.column)
@@ -35,7 +34,9 @@ class DatabendColumn(Column):
 
     def string_size(self) -> int:
         if not self.is_string():
-            raise dbt.exceptions.RuntimeException("Called string_size() on non-string field!")
+            raise dbt.exceptions.RuntimeException(
+                "Called string_size() on non-string field!"
+            )
 
         if self.char_size is None:
             return 256
