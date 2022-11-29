@@ -7,7 +7,6 @@
 
 ![PyPI](https://img.shields.io/pypi/v/dbt-databend-cloud)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dbt-databend-cloud)
-![PyPI - Downloads](https://img.shields.io/pypi/dw/dbt-databend-cloud)
 
 The `dbt-databend-cloud` package contains all of the code enabling [dbt](https://getdbt.com) to work with
 [Databend Cloud](https://databend.rs/doc/cloud/).
