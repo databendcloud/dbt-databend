@@ -13,10 +13,10 @@ setup(
     long_description=description,
     author="zhihanz",
     author_email="zhangzhihan@datafuselabs.com",
-    url="https://github.com/ZhiHanZ/dbt-databend.git",
+    url="https://github.com/databendcloud/dbt-databend.git",
     packages=find_namespace_packages(include=["dbt", "dbt.*"]),
     include_package_data=True,
     install_requires=[
-        "dbt-core~=1.3.0.",
+        "dbt-core~=1.3.0",
     ],
 )
