@@ -26,7 +26,7 @@ Compile by source code.
 
 ```bash
 $ git clone https://github.com/databendcloud/dbt-databend.git
-$ cd dbt-databend-cloud
+$ cd dbt-databend
 $ pip install .
 ```
 Also, you can get it from pypi.
