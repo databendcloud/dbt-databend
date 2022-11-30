@@ -91,7 +91,7 @@ See [tests/README.md](tests/README.md) for details on running the integration te
 
 ## Example
 
-TODO
+Click [here](https://github.com/databendcloud/dbt-databend/wiki/How-to-use-dbt-with-Databend-Cloud) to see a simple example about using dbt with dbt-databend-cloud.
 
 ## Contributing
 
