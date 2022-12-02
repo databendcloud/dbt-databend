@@ -9,7 +9,6 @@ from dbt.adapters.sql import SQLConnectionManager as connection_cls
 from dbt.contracts.connection import AdapterResponse
 from dbt.events import AdapterLogger
 from typing import Optional, Tuple, List, Any
-from databend_py import Client
 from databend_sqlalchemy import connector
 
 from dbt.exceptions import (
