@@ -4,7 +4,6 @@ from dataclasses import dataclass
 import agate
 import dbt.exceptions  # noqa
 from dbt.adapters.base import Credentials
-import mysql.connector
 
 from dbt.adapters.sql import SQLConnectionManager as connection_cls
 from dbt.contracts.connection import AdapterResponse
@@ -14,10 +13,7 @@ from databend_py import Client
 from databend_sqlalchemy import connector
 
 from dbt.exceptions import (
-    InternalException,
     RuntimeException,
-    FailedToConnectException,
-    DatabaseException,
 )
 
 logger = AdapterLogger("databend")

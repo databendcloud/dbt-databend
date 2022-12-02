@@ -24,6 +24,5 @@ wheel
 databend-py==0.2.4
 databend-sqlalchemy==0.0.6
 environs
-mysql-connector-python>=8.0.0,<8.1
 
 dbt-tests-adapter
