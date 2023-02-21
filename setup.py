@@ -18,8 +18,8 @@ setup(
     include_package_data=True,
     install_requires=[
         "dbt-core~=1.3.0",
-        "databend-py~=0.3.3",
-        "databend-sqlalchemy~=0.1.4",
+        "databend-py~=0.3.5",
+        "databend-sqlalchemy~=0.1.6",
     ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
