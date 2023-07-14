@@ -142,7 +142,7 @@ class DatabendConnectionManager(connection_cls):
             #     # password=credentials.password,
             # )
             handle = connector.connect(
-                f"https://{credentials.username}:{credentials.password}@{credentials.host}:{credentials.port}"
+                f"https://{credentials.username}:{credentials.password}@{credentials.host}:{credentials.port}?secure=true"
             )
         except Exception as e:
             logger.debug("Error opening connection: {}".format(e))
