@@ -12,7 +12,7 @@ from typing import Optional, Tuple, List, Any
 from databend_sqlalchemy import connector
 
 from dbt.exceptions import (
-    RuntimeException,
+    Exception,
 )
 
 logger = AdapterLogger("databend")
@@ -35,7 +35,8 @@ class DatabendCredentials(Credentials):
     database: Optional[str] = None
     username: Optional[str] = None
     password: Optional[str] = None
-    schema: str = "default"
+    schema: Optional[str] = None
+    secure: Optional[bool] = None
 
     # Add credentials members here, like:
     # host: str
@@ -61,7 +62,7 @@ class DatabendCredentials(Credentials):
         # databend classifies database and schema as the same thing
         self.database = None
         if self.database is not None and self.database != self.schema:
-            raise dbt.exceptions.RuntimeException(
+            raise dbt.exceptions.Exception(
                 f"    schema: {self.schema} \n"
                 f"    database: {self.database} \n"
                 f"On Databend, database must be omitted or have the same value as"
@@ -104,7 +105,7 @@ class DatabendConnectionManager(connection_cls):
             logger.debug("Error running SQL: {}".format(sql))
             logger.debug("Rolling back transaction.")
             self.rollback_if_open()
-            raise dbt.exceptions.RuntimeException(str(e))
+            raise dbt.exceptions.Exception(str(e))
 
     # except for DML statements where explicitly defined
     def add_begin_query(self, *args, **kwargs):
@@ -141,9 +142,18 @@ class DatabendConnectionManager(connection_cls):
             #     # user=credentials.username,
             #     # password=credentials.password,
             # )
-            handle = connector.connect(
-                f"https://{credentials.username}:{credentials.password}@{credentials.host}:{credentials.port}?secure=true"
-            )
+            if credentials.secure is None:
+                credentials.secure = True
+
+            if credentials.secure:
+                handle = connector.connect(
+                    f"https://{credentials.username}:{credentials.password}@{credentials.host}:{credentials.port}/{credentials.schema}?secure=true "
+                )
+            else:
+                handle = connector.connect(
+                    f"http://{credentials.username}:{credentials.password}@{credentials.host}:{credentials.port}/{credentials.schema}?secure=false "
+                )
+
         except Exception as e:
             logger.debug("Error opening connection: {}".format(e))
             connection.handle = None
@@ -158,7 +168,7 @@ class DatabendConnectionManager(connection_cls):
         return "OK"
 
     def execute(
-        self, sql: str, auto_begin: bool = False, fetch: bool = False
+            self, sql: str, auto_begin: bool = False, fetch: bool = False
     ) -> Tuple[AdapterResponse, agate.Table]:
         # don't apply the query comment here
         # it will be applied after ';' queries are split
@@ -183,7 +193,7 @@ class DatabendConnectionManager(connection_cls):
             else:
                 conn_name = conn.name
 
-            raise RuntimeException(
+            raise Exception(
                 "Tried to run an empty query on model '{}'. If you are "
                 "conditionally running\nsql, eg. in a model hook, make "
                 "sure your `else` clause contains valid sql!\n\n"

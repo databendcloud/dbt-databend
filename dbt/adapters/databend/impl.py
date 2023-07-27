@@ -99,7 +99,7 @@ class DatabendAdapter(SQLAdapter):
 
     @classmethod
     def convert_time_type(cls, agate_table: agate.Table, col_idx: int) -> str:
-        raise dbt.exceptions.NotImplementedException(
+        raise dbt.exceptions.DbtRuntimeError(
             "`convert_time_type` is not implemented for this adapter!"
         )
 
@@ -123,7 +123,7 @@ class DatabendAdapter(SQLAdapter):
         relations = []
         for row in results:
             if len(row) != 4:
-                raise dbt.exceptions.RuntimeException(
+                raise dbt.exceptions.DbtRuntimeError(
                     f"Invalid value from 'show table extended ...', "
                     f"got {len(row)} values, expected 4"
                 )
@@ -151,8 +151,8 @@ class DatabendAdapter(SQLAdapter):
         return table.where(_catalog_filter_schemas(manifest))
 
     def get_relation(self, database: Optional[str], schema: str, identifier: str):
-        if not self.Relation.include_policy.database:
-            database = None
+        # if not self.Relation.include_policy.database:
+        #     database = None
 
         return super().get_relation(database, schema, identifier)
 
@@ -182,7 +182,7 @@ class DatabendAdapter(SQLAdapter):
     def get_catalog(self, manifest):
         schema_map = self._get_catalog_schemas(manifest)
         if len(schema_map) > 1:
-            dbt.exceptions.raise_compiler_error(
+            dbt.exceptions.DbtRuntimeError(
                 f"Expected only one database in get_catalog, found "
                 f"{list(schema_map)}"
             )
@@ -211,7 +211,7 @@ class DatabendAdapter(SQLAdapter):
         manifest: Manifest,
     ) -> agate.Table:
         if len(schemas) != 1:
-            dbt.exceptions.raise_compiler_error(
+            dbt.exceptions.DbtRuntimeError(
                 f"Expected only one schema in databend _get_one_catalog, found {schemas}"
             )
 
@@ -224,7 +224,7 @@ class DatabendAdapter(SQLAdapter):
         clause: str,
         where_clause: Optional[str] = None,
     ) -> str:
-        raise dbt.exceptions.NotImplementedException(
+        raise dbt.exceptions.DbtInternalError(
             "`update_column_sql` is not implemented for this adapter!"
         )
 
