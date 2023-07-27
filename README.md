@@ -69,16 +69,18 @@ Your_Profile_Name:
       schema: [schema(Your database)]
       user: [username]
       pass: [password]
+      secure: [SSL]
 ```
 
-| Option   | Description                                           | Required? | Example                        |
-|----------|-------------------------------------------------------|-----------|--------------------------------|
-| type     | The specific adapter to use                           | Required  | `databend`                     |
-| host     | The server (hostname) to connect to                   | Required  | `yourorg.databend.com`         |
-| port     | The port to use                                       | Required  | `443`                          |
-| schema   | Specify the schema (database) to build models into    | Required  | `analytics`                    |
-| user     | The username to use to connect to the server          | Required  | `dbt_admin`                    |
-| pass     | The password to use for authenticating to the server  | Required  | `correct-horse-battery-staple` |
+| Option | Description                                          | Required? | Example                        |
+|--------|------------------------------------------------------|-----------|--------------------------------|
+| type   | The specific adapter to use                          | Required  | `databend`                     |
+| host   | The server (hostname) to connect to                  | Required  | `yourorg.databend.com`         |
+| port   | The port to use                                      | Required  | `443`                          |
+| schema | Specify the schema (database) to build models into   | Required  | `analytics`                    |
+| user   | The username to use to connect to the server         | Required  | `dbt_admin`                    |
+| pass   | The password to use for authenticating to the server | Required  | `correct-horse-battery-staple` |
+| secure | The SSL of host (default as True)                    | Optional  | `True`                         |
 
 
 Note:

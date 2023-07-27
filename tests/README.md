@@ -26,6 +26,7 @@ Config the configurations in `conftest.py`:
         "user": "user",
         "pass": "pass",
         "schema": "your database",
+        "secure": True,
     }
 ```
 
