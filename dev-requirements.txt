@@ -21,8 +21,8 @@ pytz
 tox>=3.13
 twine
 wheel
-databend-py==0.2.4
-databend-sqlalchemy==0.0.6
+databend-py==0.4.9
+databend-sqlalchemy==0.3.2
 environs
 
 dbt-tests-adapter

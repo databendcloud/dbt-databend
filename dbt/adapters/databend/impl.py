@@ -1,18 +1,20 @@
 from concurrent.futures import Future
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Set, Union
+from typing import Callable, List, Optional, Set, Union, FrozenSet, Tuple
 
 import agate
-import dbt.exceptions
 from dbt.adapters.base import AdapterConfig, available
 from dbt.adapters.base.impl import catch_as_completed
 from dbt.adapters.base.relation import InformationSchema
 from dbt.adapters.sql import SQLAdapter
-from dbt.clients.agate_helper import table_from_rows
-from dbt.contracts.graph.manifest import Manifest
-from dbt.contracts.relation import RelationType
-from dbt.events import AdapterLogger
-from dbt.utils import executor
+
+from dbt_common.clients.agate_helper import table_from_rows
+from dbt.adapters.events.logging import AdapterLogger
+from dbt.adapters.contracts.relation import RelationType
+from dbt_common.contracts.constraints import ConstraintType
+from dbt_common.exceptions import CompilationError, DbtDatabaseError, DbtRuntimeError, DbtInternalError
+from dbt_common.utils import filter_null_values
+from dbt_common.utils import executor
 
 import csv
 import io
@@ -29,24 +31,11 @@ logger = AdapterLogger("databend")
 
 def _expect_row_value(key: str, row: agate.Row):
     if key not in row.keys():
-        raise dbt.exceptions.InternalException(
+        raise DbtInternalError(
             f"Got a row without '{key}' column, columns: {row.keys()}"
         )
 
     return row[key]
-
-
-def _catalog_filter_schemas(manifest: Manifest) -> Callable[[agate.Row], bool]:
-    schemas = frozenset((None, s.lower()) for d, s in manifest.get_used_schemas())
-
-    def test(row: agate.Row) -> bool:
-        table_database = _expect_row_value("table_database", row)
-        table_schema = _expect_row_value("table_schema", row)
-        if table_schema is None:
-            return False
-        return (table_database, table_schema.lower()) in schemas
-
-    return test
 
 
 @dataclass
@@ -99,7 +88,7 @@ class DatabendAdapter(SQLAdapter):
 
     @classmethod
     def convert_time_type(cls, agate_table: agate.Table, col_idx: int) -> str:
-        raise dbt.exceptions.DbtRuntimeError(
+        raise DbtRuntimeError(
             "`convert_time_type` is not implemented for this adapter!"
         )
 
@@ -115,7 +104,7 @@ class DatabendAdapter(SQLAdapter):
         return exists
 
     def list_relations_without_caching(
-        self, schema_relation: DatabendRelation
+            self, schema_relation: DatabendRelation
     ) -> List[DatabendRelation]:
         kwargs = {"schema_relation": schema_relation}
         results = self.execute_macro(LIST_RELATIONS_MACRO_NAME, kwargs=kwargs)
@@ -123,7 +112,7 @@ class DatabendAdapter(SQLAdapter):
         relations = []
         for row in results:
             if len(row) != 4:
-                raise dbt.exceptions.DbtRuntimeError(
+                raise DbtRuntimeError(
                     f"Invalid value from 'show table extended ...', "
                     f"got {len(row)} values, expected 4"
                 )
@@ -141,14 +130,14 @@ class DatabendAdapter(SQLAdapter):
 
     @classmethod
     def _catalog_filter_table(
-        cls, table: agate.Table, manifest: Manifest
+            cls, table: agate.Table, used_schemas: FrozenSet[Tuple[str, str]]
     ) -> agate.Table:
         table = table_from_rows(
             table.rows,
             table.column_names,
             text_only_columns=["table_schema", "table_name"],
         )
-        return table.where(_catalog_filter_schemas(manifest))
+        return super()._catalog_filter_table(table, used_schemas)
 
     def get_relation(self, database: Optional[str], schema: str, identifier: str):
         # if not self.Relation.include_policy.database:
@@ -157,7 +146,7 @@ class DatabendAdapter(SQLAdapter):
         return super().get_relation(database, schema, identifier)
 
     def parse_show_columns(
-        self, _relation: DatabendRelation, raw_rows: List[agate.Row]
+            self, _relation: DatabendRelation, raw_rows: List[agate.Row]
     ) -> List[DatabendColumn]:
         rows = [
             dict(zip(row._keys, row._values))  # pylint: disable=protected-access
@@ -173,58 +162,33 @@ class DatabendAdapter(SQLAdapter):
         ]
 
     def get_columns_in_relation(
-        self, relation: DatabendRelation
+            self, relation: DatabendRelation
     ) -> List[DatabendColumn]:
         rows: List[agate.Row] = super().get_columns_in_relation(relation)
 
         return self.parse_show_columns(relation, rows)
 
-    def get_catalog(self, manifest):
-        schema_map = self._get_catalog_schemas(manifest)
-        if len(schema_map) > 1:
-            dbt.exceptions.DbtRuntimeError(
-                f"Expected only one database in get_catalog, found "
-                f"{list(schema_map)}"
-            )
-
-        with executor(self.config) as tpe:
-            futures: List[Future[agate.Table]] = []
-            for info, schemas in schema_map.items():
-                for schema in schemas:
-                    futures.append(
-                        tpe.submit_connected(
-                            self,
-                            schema,
-                            self._get_one_catalog,
-                            info,
-                            [schema],
-                            manifest,
-                        )
-                    )
-            catalogs, exceptions = catch_as_completed(futures)
-        return catalogs, exceptions
-
     def _get_one_catalog(
-        self,
-        information_schema: InformationSchema,
-        schemas: Set[str],
-        manifest: Manifest,
+            self,
+            information_schema: InformationSchema,
+            schemas: Set[str],
+            used_schemas: FrozenSet[Tuple[str, str]],
     ) -> agate.Table:
         if len(schemas) != 1:
-            dbt.exceptions.DbtRuntimeError(
+            DbtRuntimeError(
                 f"Expected only one schema in databend _get_one_catalog, found {schemas}"
             )
 
-        return super()._get_one_catalog(information_schema, schemas, manifest)
+        return super()._get_one_catalog(information_schema, schemas, used_schemas)
 
     def update_column_sql(
-        self,
-        dst_name: str,
-        dst_column: str,
-        clause: str,
-        where_clause: Optional[str] = None,
+            self,
+            dst_name: str,
+            dst_column: str,
+            clause: str,
+            where_clause: Optional[str] = None,
     ) -> str:
-        raise dbt.exceptions.DbtInternalError(
+        raise DbtInternalError(
             "`update_column_sql` is not implemented for this adapter!"
         )
 
@@ -249,11 +213,11 @@ class DatabendAdapter(SQLAdapter):
             conn.transaction_open = False
 
     def get_rows_different_sql(
-        self,
-        relation_a: DatabendRelation,
-        relation_b: DatabendRelation,
-        column_names: Optional[List[str]] = None,
-        except_operator: str = "EXCEPT",
+            self,
+            relation_a: DatabendRelation,
+            relation_b: DatabendRelation,
+            column_names: Optional[List[str]] = None,
+            except_operator: str = "EXCEPT",
     ) -> str:
         names: List[str]
         if column_names is None:

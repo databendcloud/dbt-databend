@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import TypeVar, Optional, Dict, Any
 
-import dbt.exceptions
 from dbt.adapters.base.column import Column
+from dbt_common.exceptions import DbtRuntimeError
 
 Self = TypeVar("Self", bound="DatabendColumn")
 
@@ -34,7 +34,7 @@ class DatabendColumn(Column):
 
     def string_size(self) -> int:
         if not self.is_string():
-            raise dbt.exceptions.RuntimeException(
+            raise DbtRuntimeError(
                 "Called string_size() on non-string field!"
             )
 
