@@ -93,7 +93,7 @@ dbt docs: https://docs.getdbt.com/docs/contributing/building-a-new-adapter
   2. alter table by targeting specific name and passing in new name
 */
   {% call statement('drop_relation') %}
-    drop table if exists {{ to_relation }}
+    drop {{ to_relation.type }} if exists {{ to_relation }}
   {% endcall %}
   {% call statement('rename_relation') %}
     rename table {{ from_relation }} to {{ to_relation }}
@@ -133,9 +133,9 @@ dbt docs: https://docs.getdbt.com/docs/contributing/building-a-new-adapter
   {{ sql_header if sql_header is not none }}
 
   {% if temporary -%}
-    create transient table {{ relation.name }} if not exist
+    create or replace transient table {{ relation.name }}
   {%- else %}
-    create table {{ relation.include(database=False) }}
+    create or replace table {{ relation.include(database=False) }}
     {{ cluster_by_clause(label="cluster by") }}
   {%- endif %}
   as {{ sql }}
@@ -146,7 +146,7 @@ dbt docs: https://docs.getdbt.com/docs/contributing/building-a-new-adapter
 
   {{ sql_header if sql_header is not none }}
 
-  create view {{ relation.include(database=False) }}
+  create or replace view {{ relation.include(database=False) }}
   as {{ sql }}
 {%- endmacro %}
 

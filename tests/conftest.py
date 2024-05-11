@@ -17,7 +17,7 @@ def dbt_profile_target():
         "host": "tn3ftqihs--medium-p8at.gw.aws-us-east-2.default.databend.com",
         "port": 443,
         "user": "cloudapp",
-        "pass": "rcyru7p6a0ht",
+        "pass": "password",
         "schema": "default",
         "secure": True,
     }

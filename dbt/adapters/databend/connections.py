@@ -96,6 +96,11 @@ class DatabendCredentials(Credentials):
         return ("host", "port", "database", "schema", "user")
 
 
+@dataclass
+class DatabendAdapterResponse(AdapterResponse):
+    query_id: str = ""
+
+
 class DatabendConnectionManager(connection_cls):
     TYPE = "databend"
 
@@ -165,8 +170,11 @@ class DatabendConnectionManager(connection_cls):
         return connection
 
     @classmethod
-    def get_response(cls, _):
-        return "OK"
+    def get_response(cls, cursor):
+        return DatabendAdapterResponse(
+            _message="{} {}".format("adapter response", cursor.rowcount),
+            rows_affected=cursor.rowcount,
+        )
 
     def execute(
             self, sql: str, auto_begin: bool = False, fetch: bool = False, limit: Optional[int] = None
