@@ -21,7 +21,6 @@ setup(
         "dbt-adapters>=0.1.0a1,<2.0",
         "databend-sqlalchemy~=0.3.2",
         "agate",
-        "dbt-tests-adapter",
     ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
