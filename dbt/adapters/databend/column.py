@@ -14,12 +14,16 @@ class DatabendColumn(Column):
         return '"{}"'.format(self.column)
 
     def is_string(self) -> bool:
+        if self.dtype is None:
+            return False
         return self.dtype.lower() in [
             "string",
             "varchar",
         ]
 
     def is_integer(self) -> bool:
+        if self.dtype is None:
+            return False
         return self.dtype.lower().startswith("int") or self.dtype.lower() in (
             "tinyint",
             "smallint",
@@ -30,6 +34,8 @@ class DatabendColumn(Column):
         return False
 
     def is_float(self) -> bool:
+        if self.dtype is None:
+            return False
         return self.dtype.lower() in ("float", "double")
 
     def string_size(self) -> int:

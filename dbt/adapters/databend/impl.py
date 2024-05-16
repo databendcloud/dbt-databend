@@ -118,12 +118,7 @@ class DatabendAdapter(SQLAdapter):
                 )
             _database, name, schema, type_info = row
             rel_type = RelationType.View if "view" in type_info else RelationType.Table
-            relation = self.Relation.create(
-                database=None,
-                schema=schema,
-                identifier=name,
-                type=rel_type,
-            )
+            relation = self.Relation.create(database=None, schema=schema, identifier=name, rt=rel_type)
             relations.append(relation)
 
         return relations

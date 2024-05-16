@@ -6,7 +6,7 @@
 
   {%- set can_exchange = adapter.can_exchange(schema, type) %}
   {%- set new_relation = api.Relation.create(
-      database=None,
+      database=database,
       schema=schema,
       identifier=identifier,
       type=type,

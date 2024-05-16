@@ -49,7 +49,7 @@ class DatabendRelation(BaseRelation):
             database: Optional[str] = None,
             schema: Optional[str] = None,
             identifier: Optional[str] = None,
-            type: Optional[RelationType] = None,
+            rt: Optional[RelationType] = None,
             **kwargs,
     ) -> Self:
         database = None
@@ -60,7 +60,7 @@ class DatabendRelation(BaseRelation):
                     "schema": schema,
                     "identifier": identifier,
                 },
-                "type": type,
+                "type": rt,
             }
         )
         return cls.from_dict(kwargs)

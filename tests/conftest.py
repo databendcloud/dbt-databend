@@ -14,10 +14,10 @@ pytest_plugins = ["dbt.tests.fixtures.project"]
 def dbt_profile_target():
     return {
         "type": "databend",
-        "host": "tn3ftqihs--medium-p8at.gw.aws-us-east-2.default.databend.com",
-        "port": 443,
-        "user": "cloudapp",
-        "pass": "password",
+        "host": "localhost",
+        "port": 8000,
+        "user": "databend",
+        "pass": "databend",
         "schema": "default",
-        "secure": True,
+        "secure": False,
     }
