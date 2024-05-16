@@ -23,6 +23,7 @@ class TestIncrementalUniqueKeyDatabend(BaseIncrementalUniqueKey):
     pass
 
 
+@mark.skip('No support for unique keys in default incremental strategy')
 class TestUniqueKeyDeleteInsertDatabend(BaseIncrementalUniqueKey):
     @fixture(scope='class')
     def project_config_update(self):
