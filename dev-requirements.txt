@@ -24,5 +24,3 @@ wheel
 databend-py==0.4.9
 databend-sqlalchemy==0.3.2
 environs
-
-dbt-tests-adapter
