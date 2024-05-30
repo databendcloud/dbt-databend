@@ -45,7 +45,7 @@ $ pip install dbt-databend-cloud
 |  ✅ |           Sources           |
 |  ✅ |      Custom data tests      |
 |  ✅ |        Docs generate        |
-|  ❌ |          Snapshots          |
+|  ✅ |          Snapshots          |
 |  ✅ |      Connection retry       |
 
 Note:

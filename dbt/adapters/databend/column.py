@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import TypeVar, Optional, Dict, Any
 
-import dbt.exceptions
 from dbt.adapters.base.column import Column
+from dbt_common.exceptions import DbtRuntimeError
 
 Self = TypeVar("Self", bound="DatabendColumn")
 
@@ -14,12 +14,16 @@ class DatabendColumn(Column):
         return '"{}"'.format(self.column)
 
     def is_string(self) -> bool:
+        if self.dtype is None:
+            return False
         return self.dtype.lower() in [
             "string",
             "varchar",
         ]
 
     def is_integer(self) -> bool:
+        if self.dtype is None:
+            return False
         return self.dtype.lower().startswith("int") or self.dtype.lower() in (
             "tinyint",
             "smallint",
@@ -30,11 +34,13 @@ class DatabendColumn(Column):
         return False
 
     def is_float(self) -> bool:
+        if self.dtype is None:
+            return False
         return self.dtype.lower() in ("float", "double")
 
     def string_size(self) -> int:
         if not self.is_string():
-            raise dbt.exceptions.RuntimeException(
+            raise DbtRuntimeError(
                 "Called string_size() on non-string field!"
             )
 

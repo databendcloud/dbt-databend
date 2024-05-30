@@ -2,17 +2,24 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 
 import agate
-import dbt.exceptions  # noqa
-from dbt.adapters.base import Credentials
+import dbt_common.exceptions  # noqa
 
+from dbt.adapters.exceptions.connection import FailedToConnectError
+from dbt.adapters.contracts.connection import AdapterResponse, Connection, Credentials
+from dbt_common.clients.agate_helper import empty_table
 from dbt.adapters.sql import SQLConnectionManager as connection_cls
-from dbt.contracts.connection import AdapterResponse
-from dbt.events import AdapterLogger
+from dbt.adapters.events.logging import AdapterLogger  # type: ignore
+from dbt_common.events.functions import warn_or_error
+from dbt.adapters.events.types import AdapterEventWarning
+from dbt_common.ui import line_wrap_message, warning_tag
+from dbt_common.clients.agate_helper import empty_table
 from typing import Optional, Tuple, List, Any
 from databend_sqlalchemy import connector
 
-from dbt.exceptions import (
-    Exception,
+from dbt_common.exceptions import (
+    DbtInternalError,
+    DbtRuntimeError,
+    DbtConfigError,
 )
 
 logger = AdapterLogger("databend")
@@ -62,7 +69,7 @@ class DatabendCredentials(Credentials):
         # databend classifies database and schema as the same thing
         self.database = None
         if self.database is not None and self.database != self.schema:
-            raise dbt.exceptions.Exception(
+            raise DbtRuntimeError(
                 f"    schema: {self.schema} \n"
                 f"    database: {self.database} \n"
                 f"On Databend, database must be omitted or have the same value as"
@@ -89,6 +96,11 @@ class DatabendCredentials(Credentials):
         return ("host", "port", "database", "schema", "user")
 
 
+@dataclass
+class DatabendAdapterResponse(AdapterResponse):
+    query_id: str = ""
+
+
 class DatabendConnectionManager(connection_cls):
     TYPE = "databend"
 
@@ -105,7 +117,7 @@ class DatabendConnectionManager(connection_cls):
             logger.debug("Error running SQL: {}".format(sql))
             logger.debug("Rolling back transaction.")
             self.rollback_if_open()
-            raise dbt.exceptions.Exception(str(e))
+            raise DbtRuntimeError(str(e))
 
     # except for DML statements where explicitly defined
     def add_begin_query(self, *args, **kwargs):
@@ -136,12 +148,6 @@ class DatabendConnectionManager(connection_cls):
         credentials = connection.credentials
 
         try:
-            # handle = mysql.connector.connect(
-            #     # host=credentials.host,
-            #     # port=credentials.port,
-            #     # user=credentials.username,
-            #     # password=credentials.password,
-            # )
             if credentials.secure is None:
                 credentials.secure = True
 
@@ -158,17 +164,20 @@ class DatabendConnectionManager(connection_cls):
             logger.debug("Error opening connection: {}".format(e))
             connection.handle = None
             connection.state = "fail"
-            raise dbt.exceptions.FailedToConnectException(str(e))
+            raise FailedToConnectError(str(e))
         connection.state = "open"
         connection.handle = handle
         return connection
 
     @classmethod
-    def get_response(cls, _):
-        return "OK"
+    def get_response(cls, cursor):
+        return DatabendAdapterResponse(
+            _message="{} {}".format("adapter response", cursor.rowcount),
+            rows_affected=cursor.rowcount,
+        )
 
     def execute(
-            self, sql: str, auto_begin: bool = False, fetch: bool = False
+            self, sql: str, auto_begin: bool = False, fetch: bool = False, limit: Optional[int] = None
     ) -> Tuple[AdapterResponse, agate.Table]:
         # don't apply the query comment here
         # it will be applied after ';' queries are split
@@ -176,9 +185,9 @@ class DatabendConnectionManager(connection_cls):
         response = self.get_response(cursor)
         # table: rows, column_names=None, column_types=None, row_names=None
         if fetch:
-            table = self.get_result_from_cursor(cursor)
+            table = self.get_result_from_cursor(cursor, limit)
         else:
-            table = dbt.clients.agate_helper.empty_table()
+            table = dbt_common.clients.agate_helper.empty_table()
         return response, table
 
     def add_query(self, sql, auto_begin=False, bindings=None, abridge_sql_log=False):
@@ -231,13 +240,16 @@ class DatabendConnectionManager(connection_cls):
         return [dict(zip(column_names, row)) for row in rows]
 
     @classmethod
-    def get_result_from_cursor(cls, cursor: Any) -> agate.Table:
+    def get_result_from_cursor(cls, cursor: Any, limit: Optional[int]) -> agate.Table:
         data: List[Any] = []
         column_names: List[str] = []
 
         if cursor.description is not None:
             column_names = [col[0] for col in cursor.description]
-            rows = cursor.fetchall()
+            if limit:
+                rows = cursor.fetchmany(limit)
+            else:
+                rows = cursor.fetchall()
             data = cls.process_results(column_names, rows)
 
-        return dbt.clients.agate_helper.table_from_data_flat(data, column_names)
+        return dbt_common.clients.agate_helper.table_from_data_flat(data, column_names)

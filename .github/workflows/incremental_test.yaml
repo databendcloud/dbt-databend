@@ -1,0 +1,46 @@
+name: Incremental Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      databend:
+        image: datafuselabs/databend
+        env:
+          QUERY_DEFAULT_USER: databend
+          QUERY_DEFAULT_PASSWORD: databend
+          MINIO_ENABLED: true
+        ports:
+          - 8000:8000
+          - 9000:9000
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Pip Install
+        run: |
+          pip install pipenv
+          pip install pytest
+          pip install -r dev-requirements.txt
+          pipenv install --dev --skip-lock
+
+      - name: Verify Service Running
+        run: |
+          cid=$(docker ps -a | grep databend | cut -d' ' -f1)
+          docker logs ${cid}
+          curl -v http://localhost:8000/v1/health
+
+      - name: dbt databend Incremental Test Suite
+        run: |
+          python -m pytest -s tests/functional/adapter/incremental/test_incremental.py

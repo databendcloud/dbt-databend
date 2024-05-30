@@ -1,8 +1,9 @@
 from dataclasses import dataclass, field
 from typing import Optional, TypeVar, Any, Type, Dict, Union, Iterator, Tuple, Set
-import dbt.exceptions
+
+from dbt_common.exceptions import CompilationError, DbtDatabaseError, DbtRuntimeError, DbtInternalError
 from dbt.adapters.base.relation import BaseRelation, Policy
-from dbt.contracts.relation import (
+from dbt.adapters.contracts.relation import (
     Path,
     RelationType,
 )
@@ -35,7 +36,7 @@ class DatabendRelation(BaseRelation):
 
     def __post_init__(self):
         if self.database != self.schema and self.database:
-            raise dbt.exceptions.DbtRuntimeError(
+            raise DbtDatabaseError(
                 f"    schema: {self.schema} \n"
                 f"    database: {self.database} \n"
                 f"On Databend, database must be omitted or have the same value as"
@@ -48,7 +49,7 @@ class DatabendRelation(BaseRelation):
             database: Optional[str] = None,
             schema: Optional[str] = None,
             identifier: Optional[str] = None,
-            type: Optional[RelationType] = None,
+            rt: Optional[RelationType] = None,
             **kwargs,
     ) -> Self:
         database = None
@@ -59,14 +60,14 @@ class DatabendRelation(BaseRelation):
                     "schema": schema,
                     "identifier": identifier,
                 },
-                "type": type,
+                "type": rt,
             }
         )
         return cls.from_dict(kwargs)
 
     def render(self):
         if self.include_policy.database and self.include_policy.schema:
-            raise dbt.exceptions.DbtRuntimeError(
+            raise DbtRuntimeError(
                 "Got a databend relation with schema and database set to "
                 "include, but only one can be set"
             )
@@ -90,7 +91,7 @@ class DatabendRelation(BaseRelation):
             identifier: Optional[str] = None,
     ):
         if database:
-            raise dbt.exceptions.DbtRuntimeError(
+            raise DbtRuntimeError(
                 f"Passed unexpected schema value {schema} to Relation.matches"
             )
         return self.schema == schema and self.identifier == identifier

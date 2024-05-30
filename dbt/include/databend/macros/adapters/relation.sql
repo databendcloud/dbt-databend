@@ -4,13 +4,11 @@
     {% do return([true, target_relation]) %}
   {% endif %}
 
-  {%- set can_exchange = adapter.can_exchange(schema, type) %}
   {%- set new_relation = api.Relation.create(
-      database=None,
+      database=database,
       schema=schema,
       identifier=identifier,
-      type=type,
-      can_exchange=can_exchange
+      type=type
   ) -%}
   {% do return([false, new_relation]) %}
 {% endmacro %}
