@@ -3,7 +3,7 @@ from setuptools import find_namespace_packages, setup
 
 package_name = "dbt-databend-cloud"
 # make sure this always matches dbt/adapters/{adapter}/__version__.py
-package_version = "1.8.0b1"
+package_version = "1.8.1"
 description = """The Databend adapter plugin for dbt"""
 
 setup(
